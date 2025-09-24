@@ -14,6 +14,10 @@ creating log sequences and finally modeling.
 - Python 3.8
 - PyTorch 1.9.0
 
+## Virtual Environment 
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1  
+
 ## Installation
 This code requires the packages listed in requirements.txt.
 An virtual environment is recommended to run this code

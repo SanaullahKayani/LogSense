@@ -87,13 +87,24 @@ def generate_train_valid(data_path, window_size=20, adaptive_window=True,
         logkey_seq_pairs += logkeys
         time_seq_pairs += times
 
-    logkey_seq_pairs = np.array(logkey_seq_pairs)
-    time_seq_pairs = np.array(time_seq_pairs)
+    # Allow variable-length sequences without raising ragged array errors
+    logkey_seq_pairs = np.array(logkey_seq_pairs, dtype=object)
+    time_seq_pairs = np.array(time_seq_pairs, dtype=object)
 
-    logkey_trainset, logkey_validset, time_trainset, time_validset = train_test_split(logkey_seq_pairs,
-                                                                                      time_seq_pairs,
-                                                                                      test_size=test_size,
-                                                                                      random_state=1234)
+    # Use actual number of sequences after filtering to determine split size
+    n_sequences = len(logkey_seq_pairs)
+    if n_sequences < 2:
+        raise ValueError("Not enough sequences after filtering to perform a train/valid split.")
+
+    # Prefer fractional split if valid_size is a float in (0,1); otherwise cap absolute size
+    split_size = valid_size if (isinstance(valid_size, float) and 0 < valid_size < 1) else max(1, min(int(valid_size), n_sequences - 1))
+
+    logkey_trainset, logkey_validset, time_trainset, time_validset = train_test_split(
+        logkey_seq_pairs,
+        time_seq_pairs,
+        test_size=split_size,
+        random_state=1234
+    )
 
     # sort seq_pairs by seq len
     train_len = list(map(len, logkey_trainset))

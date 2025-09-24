@@ -81,9 +81,9 @@ class Trainer():
 
         print("Creating Dataloader")
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.batch_size, num_workers=self.num_workers,
-                                      collate_fn=train_dataset.collate_fn, drop_last=True)
+                                      collate_fn=train_dataset.collate_fn, drop_last=False)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.batch_size, num_workers=self.num_workers,
-                                       collate_fn=train_dataset.collate_fn, drop_last=True)
+                                       collate_fn=train_dataset.collate_fn, drop_last=False)
         del train_dataset
         del valid_dataset
         del logkey_train
@@ -165,9 +165,13 @@ class Trainer():
             outputs = 0
             total_samples = 0
             for data_loader in data_loader_list:
+                if data_loader is None or len(data_loader) == 0:
+                    continue
                 totol_length = len(data_loader)
                 data_iter = tqdm.tqdm(enumerate(data_loader), total=totol_length)
                 for i, data in data_iter:
+                    if data is None:
+                        continue
                     data = {key: value.to(self.device) for key, value in data.items()}
 
                     result = self.trainer.model.forward(data["bert_input"], data["time_input"])
@@ -176,7 +180,11 @@ class Trainer():
                     outputs += torch.sum(cls_output.detach().clone(), dim=0)
                     total_samples += cls_output.size(0)
 
-        center = outputs / total_samples
+        if total_samples == 0:
+            # Fallback: zero vector of hidden size
+            center = torch.zeros(self.trainer.model.bert.hidden, device=self.device)
+        else:
+            center = outputs / total_samples
 
         return center
 
