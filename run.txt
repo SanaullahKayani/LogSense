@@ -1,0 +1,34 @@
+1) Download and stage the dataset
+If you have Git Bash/WSL, use the provided script:
+    - cd HDFS
+    - sh init.sh
+
+
+
+2) Parse raw logs and build sessions
+    - python data_process.py
+
+
+3) Build the vocabulary
+In HDFS:
+    - python logbert.py vocab
+
+
+4) Train the LogBERT model
+In HDFS:
+    - python logbert.py train
+
+
+
+5) Evaluate on the test sets
+In HDFS:
+    - python logbert.py predict
+
+
+
+Check output/hdfs/model/train_valid_loss.png for a descending validation curve.
+Confirm P/R/F1 printed.
+If anything fails, share the error; the usual fixes are:
+Ensure ~/.dataset/hdfs/HDFS.log exists and is readable.
+If the .sh didn’t run, verify manual placement and naming.
+If plots cause GUI issues, note the PNG is still saved
